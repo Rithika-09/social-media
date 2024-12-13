@@ -142,6 +142,8 @@ def registration_action():
     last_name = request.form.get("last_name")
     gender = request.form.get("gender")
     pic = request.files.get("pic")
+    if not os.path.exists(PROFILE_PATH):
+        os.makedirs(PROFILE_PATH)
     path = PROFILE_PATH + "/" + pic.filename
     pic.save(path)
     email = request.form.get("email")
@@ -573,6 +575,8 @@ def send_message_file():
     other_user_id = request.form.get('other_user_id')
     message = request.form.get('message')
     file = request.files.get("file")
+    if not os.path.exists(CHAT_PATH):
+            os.makedirs(CHAT_PATH)
     path = CHAT_PATH + "/"+file.filename
     file.save(path)
     user_id = session['user_id']
