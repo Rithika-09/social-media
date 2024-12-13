@@ -165,27 +165,145 @@ def post():
     return render_template("post.html")
 
 
+# @app.route("/post_action", methods=['post'])
+# def post_action(tags=None):
+#     access_type = request.form.get("access_type")
+#     caption = request.form.get("caption")
+#     file = request.files.get("file")
+#     path = POST_PATH + "/" + file.filename
+#     file.save(path)
+#     file_type = os.path.splitext(file.filename)[-1]
+#     user_id = session["user_id"]
+#     description = request.form.get("description")
+#     today = datetime.datetime.today()
+#     print(today)
+#     query = {"access_type": access_type, "caption": caption, "file": file.filename, "file_type": file_type, "user_id": ObjectId(user_id), "description": description}
+#     result = post_col.insert_one(query)
+#     post_id = result.inserted_id
+#     tags = request.form.get("tags")
+#     tags = tags.split(",")
+#     query = {"user_id": ObjectId(user_id), "post_id": post_id, "tags": tags}
+#     tags_col.insert_one(query)
+#     return render_template("message.html",message="post successfully")
+
+
+
+
+
+# @app.route("/post_action", methods=['post'])
+# def post_action(tags=None):
+#     try:
+#         access_type = request.form.get("access_type")
+#         caption = request.form.get("caption")
+#         file = request.files.get("file")
+
+#         # Check if the file is uploaded
+#         if not file:
+#             return render_template("message.html", message="No file uploaded. Please try again.")
+
+#         # Save the uploaded file
+#         file_type = os.path.splitext(file.filename)[-1]
+#         if file_type not in image_formats + video_formats + audio_formats + pdf_formats:
+#             return render_template("message.html", message="Unsupported file format.")
+
+#         path = POST_PATH + "/" + file.filename
+#         file.save(path)
+
+#         # Get other form data
+#         user_id = session.get("user_id")
+#         if not user_id:
+#             return render_template("message.html", message="User not logged in.")
+
+#         description = request.form.get("description")
+#         today = datetime.datetime.today()
+
+#         # Save post to the database
+#         query = {
+#             "access_type": access_type,
+#             "caption": caption,
+#             "file": file.filename,
+#             "file_type": file_type,
+#             "user_id": ObjectId(user_id),
+#             "description": description,
+#             "date": today
+#         }
+#         result = post_col.insert_one(query)
+#         post_id = result.inserted_id
+
+#         # Save tags if provided
+#         tags = request.form.get("tags")
+#         if tags:
+#             tags = tags.split(",")
+#             tag_query = {"user_id": ObjectId(user_id), "post_id": post_id, "tags": tags}
+#             tags_col.insert_one(tag_query)
+
+#         return render_template("message.html", message="Post uploaded successfully!")
+#     except Exception as e:
+#         # Log the error for debugging
+#         print(f"Error in post_action: {e}")
+#         return render_template("message.html", message="An error occurred while posting. Please try again.")
+
+
+
+
+
+
+
+
+
 @app.route("/post_action", methods=['post'])
 def post_action(tags=None):
-    access_type = request.form.get("access_type")
-    caption = request.form.get("caption")
-    file = request.files.get("file")
-    path = POST_PATH + "/" + file.filename
-    file.save(path)
-    file_type = os.path.splitext(file.filename)[-1]
-    user_id = session["user_id"]
-    description = request.form.get("description")
-    today = datetime.datetime.today()
-    print(today)
-    query = {"access_type": access_type, "caption": caption, "file": file.filename, "file_type": file_type, "user_id": ObjectId(user_id), "description": description}
-    result = post_col.insert_one(query)
-    post_id = result.inserted_id
-    tags = request.form.get("tags")
-    tags = tags.split(",")
-    query = {"user_id": ObjectId(user_id), "post_id": post_id, "tags": tags}
-    tags_col.insert_one(query)
-    return render_template("message.html",message="post successfully")
+    try:
+        access_type = request.form.get("access_type")
+        caption = request.form.get("caption")
+        file = request.files.get("file")
 
+        # Check if the file is uploaded
+        if not file:
+            return render_template("message.html", message="No file uploaded. Please try again.")
+
+        # Get file type and validate
+        file_type = os.path.splitext(file.filename)[-1].lower()
+        if file_type not in image_formats + video_formats + audio_formats + pdf_formats:
+            return render_template("message.html", message="Unsupported file format. Please upload a valid file.")
+
+        # Save the file
+        path = POST_PATH + "/" + file.filename
+        file.save(path)
+
+        # Get user information
+        user_id = session.get("user_id")
+        if not user_id:
+            return render_template("message.html", message="User not logged in.")
+
+        description = request.form.get("description")
+        today = datetime.datetime.today()
+
+        # Insert post into the database
+        query = {
+            "access_type": access_type,
+            "caption": caption,
+            "file": file.filename,
+            "file_type": file_type,
+            "user_id": ObjectId(user_id),
+            "description": description,
+            "date": today
+        }
+        result = post_col.insert_one(query)
+        post_id = result.inserted_id
+
+        # Handle tags if provided
+        tags = request.form.get("tags")
+        if tags:
+            tags = tags.split(",")
+            tag_query = {"user_id": ObjectId(user_id), "post_id": post_id, "tags": tags}
+            tags_col.insert_one(tag_query)
+
+        return render_template("message.html", message="Post uploaded successfully!")
+    except Exception as e:
+        # Log errors for debugging
+        print(f"Error in post_action: {e}")
+        return render_template("message.html", message="An error occurred while posting. Please try again.")
 
 def get_tags_by_post_id(post_id):
     query = {"post_id": post_id}
