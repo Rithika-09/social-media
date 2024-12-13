@@ -267,6 +267,9 @@ def post_action(tags=None):
         if file_type not in image_formats + video_formats + audio_formats + pdf_formats:
             return render_template("message.html", message="Unsupported file format. Please upload a valid file.")
 
+        if not os.path.exists(POST_PATH):
+            os.makedirs(POST_PATH)
+        
         # Save the file
         path = POST_PATH + "/" + file.filename
         file.save(path)
